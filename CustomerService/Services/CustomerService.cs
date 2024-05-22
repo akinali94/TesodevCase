@@ -1,3 +1,4 @@
+using CustomerService.Helpers;
 using CustomerService.Mappers;
 using CustomerService.Models;
 using CustomerService.Repositories;
@@ -17,28 +18,33 @@ public class CustomerService : ICustomerService
         _mapper = mapper;
     }
 
-    public async Task<Guid> Create(CustomerCreateModel createdModel)
+    public async Task<string> Create(CustomerCreateModel createdModel)
     {
+        if (await _repository.GetByEmailAsync(createdModel.Email) != null)
+            throw new AppException("This Email already registred");
+        
         Customer newCustomer = _mapper.CreateModelToModel(createdModel);
         
-        newCustomer.Id = Guid.NewGuid();
+        newCustomer.Id = Guid.NewGuid().ToString();
         newCustomer.CreatedAt = DateTime.Now;
         
         return await _repository.CreateAsync(newCustomer);
     }
 
-    public async Task<bool> Update(Guid id, CustomerPatchModel updatedModel)
+    public async Task<bool> Update(string id, CustomerPatchModel updatedModel)
     {
-        if (await _repository.GetByIdAsync(id) is null)
+        Customer oldCustomer = await _repository.GetByIdAsync(id);
+        if(oldCustomer is null)
             throw new KeyNotFoundException("Customer not found on Update Service");
-        
-        Customer updatedCustomer = _mapper.PatchModelToModel(updatedModel);
 
-        return await _repository.UpdateAsync(id, updatedCustomer);
+        oldCustomer = _mapper.PatchModelToModel(updatedModel, oldCustomer);
+        oldCustomer.UpdatedAt = DateTime.Now;
+        
+        return await _repository.UpdateAsync(id, oldCustomer);
 
     }
 
-    public async Task<bool> Delete(Guid id)
+    public async Task<bool> Delete(string id)
     {
         if (await _repository.GetByIdAsync(id) is null)
             throw new KeyNotFoundException("Customer not found on Delete Service");
@@ -46,7 +52,7 @@ public class CustomerService : ICustomerService
         return await _repository.DeleteAsync(id);
     }
 
-    public async Task<CustomerGetModel> GetById(Guid id)
+    public async Task<CustomerGetModel> GetById(string id)
     {
         var customer = await _repository.GetByIdAsync(id);
         
@@ -66,9 +72,10 @@ public class CustomerService : ICustomerService
         return _mapper.ModelToGetAllModel(customers);
     }
 
-    public async Task<bool> Validate(Guid id)
+    public async Task<bool> Validate(string id)
     {
-        var customer = _repository.GetByIdAsync(id);
+        var customer = await _repository.GetByIdAsync(id);
+        
         if (customer is null)
             return false;
         

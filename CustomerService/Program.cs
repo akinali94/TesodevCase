@@ -1,5 +1,11 @@
 using CustomerService.Configs;
+using CustomerService.Mappers;
 using CustomerService.Middlewares;
+using CustomerService.Repositories;
+using CustomerService.Services;
+using CustomerService.V1.Models.RequestModels;
+using CustomerService.V1.Models.Validators;
+using FluentValidation;
 
 namespace CustomerService;
 
@@ -9,12 +15,22 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddControllers();
+
         // Add services to the container.
         builder.Services.AddAuthorization();
         
         //AddMongoDb Setting
         builder.Services.Configure<CustomerDbSettings>(
             builder.Configuration.GetSection("CustomerDatabase"));
+        
+        //
+        builder.Services.AddSingleton<ICustomerRepository, CustomerRepository>();
+        builder.Services.AddSingleton<ICustomerService, Services.CustomerService>();
+        builder.Services.AddSingleton<ICustomerMapper, CustomerMapper>();
+        
+        //Fluent Validation
+        builder.Services.AddScoped<IValidator<CustomerCreateModel>, CustomerCreateValidator>();
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
@@ -35,6 +51,8 @@ public class Program
         
         //Custom Exception
         app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+        app.MapControllers();
 
         app.Run();
     }

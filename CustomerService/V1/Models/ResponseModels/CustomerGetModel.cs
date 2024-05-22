@@ -2,6 +2,7 @@ namespace CustomerService.V1.Models.ResponseModels;
 
 public class CustomerGetModel
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Email { get; set; }
     public List<AddressGetModel>? Addresses { get; set; }

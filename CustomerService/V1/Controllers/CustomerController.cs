@@ -12,63 +12,116 @@ namespace CustomerService.V1.Controllers;
 public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _service;
+    private readonly ILogger<CustomerController> _logger;
 
-    public CustomerController(ICustomerService service)
+    public CustomerController(ICustomerService service, ILogger<CustomerController> logger)
     {
         _service = service;
+        _logger = logger;
     }
 
-    [HttpPost("/Create")]
+    [HttpPost("Create")]
     public async Task<IActionResult> Create([FromBody] CustomerCreateModel createModel)
     {
-        Guid id = await _service.Create(createModel);
+        string id = await _service.Create(createModel);
 
         return Created(nameof(Create), $"Created ID: {id}");
+        /*
+        try
+        {
+            string id = await _service.Create(createModel);
+
+            return Created(nameof(Create), $"Created ID: {id}");
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError("Error at Create endpoint");
+            throw new AppException("Error at Create endpoint");
+        }
+        */
+
     }
 
     [HttpPatch("{id}")]
-    public async Task<IActionResult> PatchById(Guid id, [FromBody] CustomerPatchModel patchModel)
+    public async Task<IActionResult> PatchById(string id, [FromBody] CustomerPatchModel patchModel)
     {
         if (patchModel == null)
+        {
+            _logger.LogError("Update Model is empty");
             return BadRequest("Update Model is empty");
+        }
+            
 
         var success = await _service.Update(id, patchModel);
-        if (!success)
-            throw new AppException("Update is not successful");
 
+        if (!success)
+        {
+            _logger.LogError("Update is not successful");
+            throw new AppException("Update is not successful");
+        }
+            
+        
         return Ok($"Customer {id} is updated");
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete([FromRoute] Guid id)
+    public async Task<IActionResult> Delete([FromRoute] string id)
     {
-        await _service.Delete(id);
+        try
+        {
+            await _service.Delete(id);
         
-        return Ok($"Customer {id} is deleted");
+            return Ok($"Customer {id} is deleted");
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw new AppException("Error at Delete endpoint");
+        }
+
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CustomerGetModel>> Get([FromRoute] Guid id)
+    public async Task<ActionResult<CustomerGetModel>> Get([FromRoute] string id)
     {
-        var getCustomer = await _service.GetById(id);
-        return Ok(getCustomer);
+
+        try
+        {
+            var getCustomer = await _service.GetById(id);
+            return Ok(getCustomer);
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw new AppException("Error at Get endpoint");
+        }
     }
     
-    [HttpGet("/GetAll")]
+    [HttpGet("GetAll")]
     public async Task<ActionResult<IEnumerable<CustomerGetModel>>> GetAll()
     {
-        var customers = await _service.GetAll();
-        return Ok(customers);
-
+        try
+        {
+            var customers = await _service.GetAll();
+            return Ok(customers);
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw new AppException("Error at GetAll endpoint");
+        }
     }
 
     [HttpPost("{id}")]
-    public async Task<ActionResult> Validate([FromRoute] Guid id)
+    public async Task<ActionResult> Validate([FromRoute] string id)
     {
         var validate = await _service.Validate(id);
+        
         if (!validate)
+        {
+            _logger.LogError("Customer could not be validated at Validate endpoint");
             return BadRequest("Customer could not be validated");
-
+        }
         return Ok($"{id} is Valid");
     }
 }

@@ -5,10 +5,10 @@ namespace CustomerService.Services;
 
 public interface ICustomerService
 {
-    Task<Guid> Create(CustomerCreateModel newCustomer);
-    Task<bool> Update(Guid id, CustomerPatchModel updatedCustomer);
-    Task<bool> Delete(Guid id);
-    Task<CustomerGetModel> GetById(Guid id);
+    Task<string> Create(CustomerCreateModel newCustomer);
+    Task<bool> Update(string id, CustomerPatchModel updatedCustomer);
+    Task<bool> Delete(string id);
+    Task<CustomerGetModel> GetById(string id);
     Task<IEnumerable<CustomerGetModel>> GetAll();
-    Task<bool> Validate(Guid id);
+    Task<bool> Validate(string id);
 }

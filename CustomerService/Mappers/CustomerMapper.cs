@@ -30,6 +30,7 @@ public class CustomerMapper : ICustomerMapper
     {
         return new CustomerGetModel
         {
+            Id = customer.Id,
             Name = customer.Name,
             Email = customer.Email,
             Addresses = customer.Address?.Select(x => new CustomerGetModel.AddressGetModel
@@ -48,6 +49,7 @@ public class CustomerMapper : ICustomerMapper
     {
         return customers.Select(c => new CustomerGetModel
         {
+            Id = c.Id,
             Name = c.Name,
             Email = c.Email,
             Addresses = c.Address?.Select(a => new CustomerGetModel.AddressGetModel
@@ -62,27 +64,20 @@ public class CustomerMapper : ICustomerMapper
         });
     }
 
-    public Customer PatchModelToModel(CustomerPatchModel patchModel)
+    public Customer PatchModelToModel(CustomerPatchModel patchModel, Customer oldCustomer)
     {
-        Customer updatedCustomer = new Customer();
-        updatedCustomer.Name = patchModel.Name;
-        updatedCustomer.Email = patchModel.Email;
-
-        if (patchModel.Addresses != null)
+        
+        oldCustomer.Name = patchModel.Name ?? oldCustomer.Name;
+        oldCustomer.Email = patchModel.Email ?? oldCustomer.Email;
+        
+        for (int i = 0; i < oldCustomer.Address.Count; i++)
         {
-            foreach (var addressModel in patchModel.Addresses)
-            {
-                var address = new Address
-                {
-                    AddressLine = addressModel.AddressLine,
-                    City = addressModel.City,
-                    Country = addressModel.Country,
-                    CityCode = addressModel.CityCode ?? default(int)
-                };
-                updatedCustomer.Address.Add(address);
-            }
+            oldCustomer.Address[i].AddressLine = patchModel.Addresses[i].AddressLine ?? oldCustomer.Address[i].AddressLine;
+            oldCustomer.Address[i].Country = patchModel.Addresses[i].Country ?? oldCustomer.Address[i].Country;
+            oldCustomer.Address[i].CityCode = patchModel.Addresses[i].CityCode ?? oldCustomer.Address[i].CityCode;
+            oldCustomer.Address[i].City = patchModel.Addresses[i].City ?? oldCustomer.Address[i].City;
         }
 
-        return updatedCustomer;
+        return oldCustomer;
     }
 }

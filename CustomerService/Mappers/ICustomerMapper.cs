@@ -9,5 +9,5 @@ public interface ICustomerMapper
     Customer CreateModelToModel(CustomerCreateModel createModel);
     CustomerGetModel ModelToGetModel(Customer customer);
     IEnumerable<CustomerGetModel> ModelToGetAllModel(IEnumerable<Customer> customers);
-    Customer PatchModelToModel(CustomerPatchModel patchModel);
+    Customer PatchModelToModel(CustomerPatchModel patchModel, Customer oldCustomer);
 }

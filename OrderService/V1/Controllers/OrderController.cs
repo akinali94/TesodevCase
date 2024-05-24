@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Commands;
+using OrderService.Helpers;
 using OrderService.Models;
 using OrderService.Queries;
 using OrderService.V1.Models.CommandModels;
@@ -21,7 +22,10 @@ public class OrderController : ControllerBase
     private readonly GetByCustomerIdQueryHandler _getByCustomerIdQueryHandlerHandler;
     private readonly HttpClient _httpClient;
     
-    public OrderController(CreateCommandHandler createCommandHandler, GetAllQueryHandler gelAllQueryHandler, GetByIdQueryHandler getByIdQueryHandler, HttpClient httpClient, UpdateCommandHandler updateCommandHandler, DeleteCommandHandler deleteCommandHandler, GetByCustomerIdQueryHandler getByCustomerIdQueryHandlerHandler, ChangeStatusCommandHandler changeStatusCommandHandler)
+    public OrderController(CreateCommandHandler createCommandHandler, GetAllQueryHandler gelAllQueryHandler, 
+        GetByIdQueryHandler getByIdQueryHandler, UpdateCommandHandler updateCommandHandler, 
+        DeleteCommandHandler deleteCommandHandler, GetByCustomerIdQueryHandler getByCustomerIdQueryHandlerHandler, 
+        ChangeStatusCommandHandler changeStatusCommandHandler, IHttpClientFactory httpClientFactory)
     {
         _createCommandHandler = createCommandHandler;
         _updateCommandHandler = updateCommandHandler;
@@ -32,7 +36,7 @@ public class OrderController : ControllerBase
         _getByIdQueryHandler = getByIdQueryHandler;
         _getByCustomerIdQueryHandlerHandler = getByCustomerIdQueryHandlerHandler;
         
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
     }
 
     [HttpPost("Create")]
@@ -73,6 +77,8 @@ public class OrderController : ControllerBase
     public async Task<ActionResult<IEnumerable<Order>>> GetAll()
     {
         var orders = await _getAllQueryHandler.Handle(new GetAllQuery());
+        if (orders.Count == 0)
+            throw new CustomException("There are no Orders");
 
         return Ok(orders);
     }

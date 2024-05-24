@@ -1,17 +1,14 @@
 using System.Net;
 using System.Text.Json;
-using CustomerService.Helpers;
-using CustomerService.Models;
-using CustomerService.V1.Models.ResponseModels;
+using OrderService.Helpers;
 
-namespace CustomerService.Middlewares;
+namespace OrderService.Middlewares;
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-
+    
     public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
@@ -24,13 +21,13 @@ public class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Exception occurred: {Message}", ex.Message);
-
+            
             var response = context.Response;
             response.ContentType = "application/json";
-
+            
             switch(ex)
             {
                 case CustomException e:
@@ -46,11 +43,10 @@ public class ExceptionHandlingMiddleware
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;
             }
-
+   
             var result = JsonSerializer.Serialize(new { message = ex?.Message });
-
+   
             await response.WriteAsync(result);
-
         }
     }
 }

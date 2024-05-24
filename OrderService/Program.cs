@@ -1,6 +1,7 @@
 using FluentValidation;
 using OrderService.Commands;
 using OrderService.Configs;
+using OrderService.Middlewares;
 using OrderService.Queries;
 using OrderService.V1.Models.CommandModels;
 using OrderService.V1.Models.Validators;
@@ -20,10 +21,15 @@ public class Program
         builder.Services.Configure<MongoDbSettings>(
             builder.Configuration.GetSection("OrderDatabase"));
         
+        
         //DENEME
         builder.Services.AddScoped<DbContext>();
+        builder.Services.AddScoped<ChangeStatusCommandHandler>();
         builder.Services.AddScoped<CreateCommandHandler>();
+        builder.Services.AddScoped<DeleteCommandHandler>();
+        builder.Services.AddScoped<UpdateCommandHandler>();
         builder.Services.AddScoped<GetAllQueryHandler>();
+        builder.Services.AddScoped<GetByCustomerIdQueryHandler>();
         builder.Services.AddScoped<GetByIdQueryHandler>();
         
         //Fluent Validation
@@ -32,7 +38,10 @@ public class Program
         builder.Services.AddScoped<IValidator<UpdateCommand>, OrderUpdateValidator>();
 
         builder.Services.AddControllers();
-
+        
+        //HttpClient for Microservices
+        builder.Services.AddHttpClient();
+        
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -50,6 +59,10 @@ public class Program
 
         app.UseAuthorization();
         
+        //Custom Exception
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+        app.MapControllers();
 
         app.Run();
     }

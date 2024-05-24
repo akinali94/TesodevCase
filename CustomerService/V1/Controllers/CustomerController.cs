@@ -2,6 +2,7 @@ using CustomerService.Helpers;
 using CustomerService.Services;
 using CustomerService.V1.Models.RequestModels;
 using CustomerService.V1.Models.ResponseModels;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerService.V1.Controllers;
@@ -13,16 +14,26 @@ public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _service;
     private readonly ILogger<CustomerController> _logger;
+    private readonly IValidator<CustomerCreateModel> _validator;
 
-    public CustomerController(ICustomerService service, ILogger<CustomerController> logger)
+    public CustomerController(ICustomerService service, ILogger<CustomerController> logger, IValidator<CustomerCreateModel> validator)
     {
         _service = service;
         _logger = logger;
+        _validator = validator;
     }
 
     [HttpPost("Create")]
     public async Task<IActionResult> Create([FromBody] CustomerCreateModel createModel)
     {
+        
+        var validationResult = await _validator.ValidateAsync(createModel);
+        if (!validationResult.IsValid)
+        {
+            throw new CustomException($"{validationResult.Errors[0].ErrorMessage}");
+            //return StatusCode(StatusCodes.Status400BadRequest, validationResult.Errors);
+        }
+        
         string id = await _service.Create(createModel);
 
         return Created(nameof(Create), $"Created ID: {id}");
@@ -57,7 +68,7 @@ public class CustomerController : ControllerBase
         if (!success)
         {
             _logger.LogError("Update is not successful");
-            throw new AppException("Update is not successful");
+            throw new CustomException("Update is not successful");
         }
             
         
@@ -76,7 +87,7 @@ public class CustomerController : ControllerBase
         catch(Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw new AppException("Error at Delete endpoint");
+            throw new CustomException("Error at Delete endpoint");
         }
 
     }
@@ -93,7 +104,7 @@ public class CustomerController : ControllerBase
         catch(Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw new AppException("Error at Get endpoint");
+            throw new CustomException("Error at Get endpoint");
         }
     }
     
@@ -108,11 +119,11 @@ public class CustomerController : ControllerBase
         catch(Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw new AppException("Error at GetAll endpoint");
+            throw new CustomException("Error at GetAll endpoint");
         }
     }
 
-    [HttpGet("/Validate/{id}")]
+    [HttpGet("Validate/{id}")]
     public async Task<ActionResult<bool>> Validate([FromRoute] string id)
     {
         var validate = await _service.Validate(id);

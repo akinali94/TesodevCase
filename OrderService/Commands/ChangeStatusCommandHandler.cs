@@ -17,7 +17,9 @@ public class ChangeStatusCommandHandler
     public async Task<bool> Handle(ChangeStatusCommand command)
     {
         var filter = Builders<Order>.Filter.Eq(o => o.Id, command.OrderId);
-        var update = Builders<Order>.Update.Set(o => o.Status, command.NewStatus);
+        var update = Builders<Order>.Update
+                                .Set(o => o.Status, command.NewStatus)
+                                .Set(o => o.UpdatedAt, DateTime.Now);
         
         var result = await _database.Orders.UpdateOneAsync(filter, update);
         

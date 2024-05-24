@@ -21,7 +21,7 @@ public class CustomerService : ICustomerService
     public async Task<string> Create(CustomerCreateModel createdModel)
     {
         if (await _repository.GetByEmailAsync(createdModel.Email) != null)
-            throw new AppException("This Email already registred");
+            throw new CustomException("This Email already registred");
         
         Customer newCustomer = _mapper.CreateModelToModel(createdModel);
         

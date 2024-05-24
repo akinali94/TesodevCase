@@ -112,15 +112,15 @@ public class CustomerController : ControllerBase
         }
     }
 
-    [HttpPost("{id}")]
-    public async Task<ActionResult> Validate([FromRoute] string id)
+    [HttpGet("/Validate/{id}")]
+    public async Task<ActionResult<bool>> Validate([FromRoute] string id)
     {
         var validate = await _service.Validate(id);
         
         if (!validate)
         {
             _logger.LogError("Customer could not be validated at Validate endpoint");
-            return BadRequest("Customer could not be validated");
+            return BadRequest("Customer is not Valid");
         }
         return Ok($"{id} is Valid");
     }

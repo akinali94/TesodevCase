@@ -31,6 +31,7 @@ public class Program
         builder.Services.AddScoped<GetAllQueryHandler>();
         builder.Services.AddScoped<GetByCustomerIdQueryHandler>();
         builder.Services.AddScoped<GetByIdQueryHandler>();
+        builder.Services.AddSingleton<KafkaProducerConfig>();
         
         //Fluent Validation
         builder.Services.AddScoped<IValidator<ChangeStatusCommand>, OrderStatusUpdateValidator>();
@@ -61,6 +62,7 @@ public class Program
         
         //Custom Exception
         app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<LoggingMiddleware>();
 
         app.MapControllers();
 

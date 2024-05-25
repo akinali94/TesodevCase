@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Commands;
+using OrderService.Configs;
 using OrderService.Helpers;
 using OrderService.Models;
 using OrderService.Queries;
@@ -21,22 +22,27 @@ public class OrderController : ControllerBase
     private readonly GetByIdQueryHandler _getByIdQueryHandler;
     private readonly GetByCustomerIdQueryHandler _getByCustomerIdQueryHandlerHandler;
     private readonly HttpClient _httpClient;
+    private readonly KafkaProducerConfig _producer;
+    private readonly ILogger<OrderController> _logger;
     
     public OrderController(CreateCommandHandler createCommandHandler, GetAllQueryHandler gelAllQueryHandler, 
         GetByIdQueryHandler getByIdQueryHandler, UpdateCommandHandler updateCommandHandler, 
         DeleteCommandHandler deleteCommandHandler, GetByCustomerIdQueryHandler getByCustomerIdQueryHandlerHandler, 
-        ChangeStatusCommandHandler changeStatusCommandHandler, IHttpClientFactory httpClientFactory)
+        ChangeStatusCommandHandler changeStatusCommandHandler, IHttpClientFactory httpClientFactory, KafkaProducerConfig producer, ILogger<OrderController> logger)
     {
         _createCommandHandler = createCommandHandler;
         _updateCommandHandler = updateCommandHandler;
         _deleteCommandHandler = deleteCommandHandler;
         _changeStatusCommandHandler = changeStatusCommandHandler;
-        
+
         _getAllQueryHandler = gelAllQueryHandler;
         _getByIdQueryHandler = getByIdQueryHandler;
         _getByCustomerIdQueryHandlerHandler = getByCustomerIdQueryHandlerHandler;
         
         _httpClient = httpClientFactory.CreateClient();
+        
+        _producer = producer;
+        _logger = logger;
     }
 
     [HttpPost("Create")]
@@ -46,7 +52,7 @@ public class OrderController : ControllerBase
             await _httpClient.GetAsync($"http://localhost:5236/api/v1/Customer/Validate/{command.CustomerId}");
         if (!customerResponse.IsSuccessStatusCode)
             return BadRequest("Customer Id is not valid");
-
+        
         var orderId = await _createCommandHandler.Handle(command);
         
         return Created(nameof(Create), $"Created ID: {orderId}");

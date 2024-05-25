@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService", "OrderServic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIGateway", "APIGateway\APIGateway.csproj", "{ADAE9B9E-6A42-4EC8-861D-C6A3DC28D764}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsumerAuditService", "ConsumerAuditService\ConsumerAuditService.csproj", "{8E1412FB-2281-41BD-8776-668417EE5277}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{ADAE9B9E-6A42-4EC8-861D-C6A3DC28D764}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADAE9B9E-6A42-4EC8-861D-C6A3DC28D764}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADAE9B9E-6A42-4EC8-861D-C6A3DC28D764}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E1412FB-2281-41BD-8776-668417EE5277}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E1412FB-2281-41BD-8776-668417EE5277}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E1412FB-2281-41BD-8776-668417EE5277}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E1412FB-2281-41BD-8776-668417EE5277}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

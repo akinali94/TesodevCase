@@ -1,16 +1,22 @@
 using Confluent.Kafka;
-using ConsumerAuditService.Models;
+using ConsumerAuditService.Configs;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace ConsumerAuditService.Services;
 
 public class ConsumerService
 {
     private readonly IConsumer<string, string> _consumer;
-    
-    public ConsumerService(IConfiguration configuration)
+    private readonly ILogger<ConsumerService> _logger;
+
+
+    public ConsumerService(IConfiguration configuration, ILogger<ConsumerService> logger)
     {
-        
+        _logger = logger;
+
+
         var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = configuration["Kafka:BootstrapServers"],
@@ -19,20 +25,31 @@ public class ConsumerService
         };
 
         _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-        _consumer.Subscribe("order-log");
+        
         
     }
 
-    public void ProcessKafkaMessage(CancellationToken stoppingToken)
+    public ConsumeResult<string,string> ProcessKafkaMessage(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
             var consumeResult = _consumer.Consume(stoppingToken);
-            var message = consumeResult.Message.Value;
-            var bsonMessage = BsonDocument.Parse(message);
-            var denemeModel = new DenemeModel();
-
-            //_database.AuditLogs.InsertOne(denemeModel);
+            return consumeResult;
         }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error processing Kafka message: {ex.Message}");
+            throw new Exception("Error in ProcessKafkaMessage in ConsumerService");
+        }
+    }
+
+    public void Close()
+    {
+        _consumer.Close();
+    }
+
+    public void Subscribe(string topic)
+    {
+        _consumer.Subscribe(topic);
     }
 }

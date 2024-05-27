@@ -18,22 +18,39 @@ public class LoggingMiddleware
     
     public async Task InvokeAsync(HttpContext context)
     {
-        await LogRequest(context);
+        var request = context.Request;
+        
+        var requestLog = new RequestLog
+        {
+            Timestamp = DateTime.Now,
+            Level = "Info",
+            Message = $"HTTP {request.Method} : {request.Path}",
+            Source = "Request",
+            Host = $"{request.Host}",
+            User = $"{context.User.Identity?.Name}"
+        };
+        
+        _logger.LogInformation("Request Details: {requestLog}", requestLog);
+        await _producer.ProduceAsync("order-logs", requestLog);
+        
+        
         
         var originalBodyStream = context.Response.Body;
-        using (var responseBody = new MemoryStream())
-        {
-            context.Response.Body = responseBody;
+        using var responseBody = new MemoryStream();
+        //context.Response.Body = responseBody;
 
-            await _next(context);
+        await _next(context);
+            
+        context.Response.Body = responseBody;
 
-            await LogResponse(context);
-
-            await responseBody.CopyToAsync(originalBodyStream);
-        }
+        var result = LogResponse(context);
+        
+        await _producer.ProduceAsync("order-logs", result);
+        await responseBody.CopyToAsync(originalBodyStream);
     }
-
-    private async Task LogRequest(HttpContext context)
+    
+    
+    private void LogRequest(HttpContext context)
     {
         var request = context.Request;
 
@@ -47,36 +64,43 @@ public class LoggingMiddleware
             User = $"{context.User.Identity?.Name}"
         };
         
+        
         _logger.LogInformation("Request Details: {requestLog}", requestLog);
-        await _producer.ProduceAsync("order-log", requestLog);
+        _producer.ProduceAsync("order-log", requestLog);
     }
 
-    private async Task LogResponse(HttpContext context)
+    private ResponseLog LogResponse(HttpContext context)
     {
         var response = context.Response;
 
-        var responseLog = new ResponseLog
-        {
-            Timestamp = DateTime.Now,
-            Level = "Info",
-            Message = $"HTTP {response.StatusCode}",
-            Source = "Response",
-            ContentType = $"{response.ContentType}",
-
-        };
-
+        ResponseLog responseLog = new ResponseLog();
+        responseLog.Timestamp = DateTime.Now;
+        responseLog.Level = "Info";
         if (response.StatusCode >= 500)
-        {
             responseLog.Level = "Error";
-            _logger.LogError($"Response Details: {responseLog}", responseLog);
-        }
-        else
-        {
-            _logger.LogInformation($"Response Details: {responseLog}", responseLog);
-            
-        }
+        string statusCode = response.StatusCode.ToString();
+        responseLog.Message = "HTTP" + statusCode;
+        responseLog.Source = "response";
+        responseLog.ContentType = response.ContentType ?? "unknown";
         
-        await _producer.ProduceAsync("order-log", responseLog);
+        // var responseLog = new ResponseLog
+        // {
+        //     Timestamp = DateTime.Now,
+        //     Level = "Info",
+        //     Message = $"HTTP {response.StatusCode}",
+        //     Source = "Response",
+        //     ContentType = $"{response.ContentType}",
+        //
+        // };
+        //
+        //
+        // if (response.StatusCode >= 500)
+        //     responseLog.Level = "Error";
+            
+        _logger.LogInformation($"Response Details: {responseLog}", responseLog);
+        return responseLog;
+        //await _producer.ProduceAsync("order-logs", responseLog);
+
     }
 }
 

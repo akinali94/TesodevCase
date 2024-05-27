@@ -83,7 +83,7 @@ public class OrderController : ControllerBase
     public async Task<ActionResult<IEnumerable<Order>>> GetAll()
     {
         var orders = await _getAllQueryHandler.Handle(new GetAllQuery());
-        if (orders.Count == 0)
+        if (!orders.Any())
             throw new CustomException("There are no Orders");
 
         return Ok(orders);

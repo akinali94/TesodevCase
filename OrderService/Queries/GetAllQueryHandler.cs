@@ -14,8 +14,9 @@ public class GetAllQueryHandler
         _database = database;
     }
 
-    public async Task<List<Order>> Handle(GetAllQuery query)
+    public async Task<IEnumerable<Order>> Handle(GetAllQuery query)
     {
-        return await _database.Orders.Find(o => true).ToListAsync();
+        var result = await _database.Orders.Find(o => true).ToListAsync();
+        return result;
     }
 }

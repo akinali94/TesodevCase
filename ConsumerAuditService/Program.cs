@@ -1,4 +1,5 @@
 
+using ConsumerAuditService.Configs;
 using ConsumerAuditService.Services;
 
 namespace ConsumerAuditService;
@@ -13,7 +14,8 @@ public class Program
         builder.Services.AddAuthorization();
         
         //MongoDb Settings
-        
+        builder.Services.Configure<MongoDbSettings>(
+            builder.Configuration.GetSection("AuditDatabase"));
         
         builder.Services.AddSingleton<ConsumerService>();
 

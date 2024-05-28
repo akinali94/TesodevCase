@@ -13,6 +13,11 @@ public class CreateCommand
         Address = address;
         Products = products;
     }
+    
+    public CreateCommand()
+    {
+        
+    }
 
     public string CustomerId { get; set; }
     public int Quantity { get; set; }

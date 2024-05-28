@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Commands;
 using OrderService.Configs;
+using OrderService.Configs.HttpConfig;
 using OrderService.Helpers;
 using OrderService.Models;
 using OrderService.Queries;
@@ -14,42 +15,48 @@ namespace OrderService.V1.Controllers;
 [Route("api/v1/[controller]")]
 public class OrderController : ControllerBase
 {
-    private readonly CreateCommandHandler _createCommandHandler;
-    private readonly UpdateCommandHandler _updateCommandHandler;
-    private readonly DeleteCommandHandler _deleteCommandHandler;
-    private readonly ChangeStatusCommandHandler _changeStatusCommandHandler;
-    private readonly GetAllQueryHandler _getAllQueryHandler;
-    private readonly GetByIdQueryHandler _getByIdQueryHandler;
-    private readonly GetByCustomerIdQueryHandler _getByCustomerIdQueryHandlerHandler;
-    private readonly HttpClient _httpClient;
-    private readonly KafkaProducerConfig _producer;
+
+
+    private readonly ICommandHandler<CreateCommand, string> _createCommandHandler;
+    private readonly ICommandHandler<UpdateCommand, bool> _updateCommandHandler;
+    private readonly ICommandHandler<DeleteCommand, bool> _deleteCommandHandler;
+    private readonly ICommandHandler<ChangeStatusCommand, bool> _changeStatusCommandHandler;
+    private readonly IQueryHandler<GetAllQuery, IEnumerable<Order>> _getAllQueryHandler;
+    private readonly IQueryHandler<GetByIdQuery, Order> _getByIdQueryHandler;
+    private readonly IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>> _getByCustomerIdQueryHandlerHandler;
+    private readonly IHttpHandler _httpHandler;
+    private readonly IKafkaProducerConfig _producer;
     private readonly ILogger<OrderController> _logger;
     
-    public OrderController(CreateCommandHandler createCommandHandler, GetAllQueryHandler gelAllQueryHandler, 
-        GetByIdQueryHandler getByIdQueryHandler, UpdateCommandHandler updateCommandHandler, 
-        DeleteCommandHandler deleteCommandHandler, GetByCustomerIdQueryHandler getByCustomerIdQueryHandlerHandler, 
-        ChangeStatusCommandHandler changeStatusCommandHandler, IHttpClientFactory httpClientFactory, KafkaProducerConfig producer, ILogger<OrderController> logger)
+    public OrderController(ICommandHandler<CreateCommand, string> createCommandHandler, 
+        ICommandHandler<UpdateCommand, bool> updateCommandHandler, ICommandHandler<DeleteCommand, bool> deleteCommandHandler, 
+        ICommandHandler<ChangeStatusCommand, bool> changeStatusCommandHandler, IQueryHandler<GetAllQuery, IEnumerable<Order>> getAllQueryHandler, 
+        IQueryHandler<GetByIdQuery, Order> getByIdQueryHandler, IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>> getByCustomerIdQueryHandlerHandler, 
+        IKafkaProducerConfig producer, ILogger<OrderController> logger, IHttpHandler httpHandler)
     {
         _createCommandHandler = createCommandHandler;
         _updateCommandHandler = updateCommandHandler;
         _deleteCommandHandler = deleteCommandHandler;
         _changeStatusCommandHandler = changeStatusCommandHandler;
-
-        _getAllQueryHandler = gelAllQueryHandler;
+        _getAllQueryHandler = getAllQueryHandler;
         _getByIdQueryHandler = getByIdQueryHandler;
         _getByCustomerIdQueryHandlerHandler = getByCustomerIdQueryHandlerHandler;
         
-        _httpClient = httpClientFactory.CreateClient();
+        _httpHandler = httpHandler;
         
         _producer = producer;
         _logger = logger;
+        
     }
+
 
     [HttpPost("Create")]
     public async Task<IActionResult> Create([FromBody] CreateCommand command)
     {
         var customerResponse =
-            await _httpClient.GetAsync($"http://localhost:5236/api/v1/Customer/Validate/{command.CustomerId}");
+            await _httpHandler.GetAsync($"http://localhost:5236/api/v1/Customer/Validate/{command.CustomerId}");
+        //private readonly HttpClient _httpClient; --> tan aliyorduk, sonrasinda IHttpClient tanimladik.
+        //var customerResponse = await _httpClient.GetAsync($"http://localhost:5236/api/v1/Customer/Validate/{command.CustomerId}");
         if (!customerResponse.IsSuccessStatusCode)
             return BadRequest("Customer Id is not valid");
         
@@ -58,14 +65,15 @@ public class OrderController : ControllerBase
         return Created(nameof(Create), $"Created ID: {orderId}");
     }
 
-    [HttpPatch("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] UpdateCommand command)
+    [HttpPatch]
+    public async Task<IActionResult> Update([FromBody] UpdateCommand command)
     {
-        var result = await _updateCommandHandler.Handle(id, command);
+        
+        var result = await _updateCommandHandler.Handle(command);
         if (!result)
             return NotFound("Update is not successful");
 
-        return Ok($"Order {id} is updated");
+        return Ok($"Order {command.Id} is updated");
     }
 
     [HttpDelete("{id}")]
@@ -103,7 +111,7 @@ public class OrderController : ControllerBase
     public async Task<ActionResult<Order>> GetByCustomerId(string id)
     {
         var customerResponse =
-            await _httpClient.GetAsync($"http://localhost:5236/api/v1/Customer/Validate/{id}");
+            await _httpHandler.GetAsync($"http://localhost:5236/api/v1/Customer/Validate/{id}");
         if (!customerResponse.IsSuccessStatusCode)
             return BadRequest("Customer Id is not valid");
         

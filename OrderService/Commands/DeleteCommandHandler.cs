@@ -5,7 +5,7 @@ using OrderService.V1.Models.CommandModels;
 
 namespace OrderService.Commands;
 
-public class DeleteCommandHandler
+public class DeleteCommandHandler : ICommandHandler<DeleteCommand, bool>
 {
     private readonly DbContext _database;
 

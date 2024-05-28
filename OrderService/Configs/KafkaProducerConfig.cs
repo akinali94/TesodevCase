@@ -3,7 +3,7 @@ using MongoDB.Bson.IO;
 
 namespace OrderService.Configs;
 
-public class KafkaProducerConfig //ProducerService
+public class KafkaProducerConfig : IKafkaProducerConfig //ProducerService
 {
     private readonly IConfiguration _configuration;
     private readonly IProducer<string, string> _producer;

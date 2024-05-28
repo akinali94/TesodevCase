@@ -8,4 +8,8 @@ public class DeleteCommand
     {
         OrderId = orderId;
     }
+    
+    public DeleteCommand()
+    {
+    }
 }

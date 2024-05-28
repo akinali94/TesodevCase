@@ -5,7 +5,7 @@ using OrderService.V1.Models.QueryModels;
 
 namespace OrderService.Queries;
 
-public class GetByIdQueryHandler
+public class GetByIdQueryHandler : IQueryHandler<GetByIdQuery, Order>
 {
     private readonly DbContext _database;
 

@@ -8,4 +8,9 @@ public class GetByIdQuery
     {
         OrderId = orderId;
     }
+    
+    public GetByIdQuery()
+    {
+
+    }
 }

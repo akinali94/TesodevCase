@@ -8,4 +8,8 @@ public class GetByCustomerIdQuery
     {
         CustomerId = customerId;
     }
+    
+    public GetByCustomerIdQuery()
+    {
+    }
 }

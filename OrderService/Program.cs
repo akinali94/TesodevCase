@@ -2,8 +2,10 @@ using FluentValidation;
 using OrderService.Commands;
 using OrderService.Configs;
 using OrderService.Middlewares;
+using OrderService.Models;
 using OrderService.Queries;
 using OrderService.V1.Models.CommandModels;
+using OrderService.V1.Models.QueryModels;
 using OrderService.V1.Models.Validators;
 
 namespace OrderService;
@@ -24,14 +26,14 @@ public class Program
         
         //DENEME
         builder.Services.AddScoped<DbContext>();
-        builder.Services.AddScoped<ChangeStatusCommandHandler>();
-        builder.Services.AddScoped<CreateCommandHandler>();
-        builder.Services.AddScoped<DeleteCommandHandler>();
-        builder.Services.AddScoped<UpdateCommandHandler>();
-        builder.Services.AddScoped<GetAllQueryHandler>();
-        builder.Services.AddScoped<GetByCustomerIdQueryHandler>();
-        builder.Services.AddScoped<GetByIdQueryHandler>();
-        builder.Services.AddSingleton<KafkaProducerConfig>();
+        builder.Services.AddSingleton<ICommandHandler<ChangeStatusCommand, bool>, ChangeStatusCommandHandler>();
+        builder.Services.AddSingleton<ICommandHandler<CreateCommand, string>, CreateCommandHandler>();
+        builder.Services.AddSingleton<ICommandHandler<DeleteCommand, bool>, DeleteCommandHandler>();
+        builder.Services.AddSingleton<ICommandHandler<UpdateCommand, bool>, UpdateCommandHandler>();
+        builder.Services.AddSingleton<IQueryHandler<GetAllQuery, IEnumerable<Order>>, GetAllQueryHandler>();
+        builder.Services.AddSingleton<IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>>, GetByCustomerIdQueryHandler>();
+        builder.Services.AddSingleton<IQueryHandler<GetByIdQuery, Order>, GetByIdQueryHandler>();
+        builder.Services.AddSingleton<IKafkaProducerConfig,KafkaProducerConfig>();
         
         //Fluent Validation
         builder.Services.AddScoped<IValidator<ChangeStatusCommand>, OrderStatusUpdateValidator>();

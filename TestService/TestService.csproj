@@ -7,6 +7,7 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <RootNamespace>CostumerService.Test</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,6 +24,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\CustomerService\CustomerService.csproj" />
+      <ProjectReference Include="..\OrderService\OrderService.csproj" />
     </ItemGroup>
 
 </Project>

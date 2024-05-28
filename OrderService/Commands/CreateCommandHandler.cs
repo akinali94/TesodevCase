@@ -1,10 +1,11 @@
+
 using OrderService.Configs;
 using OrderService.Models;
 using OrderService.V1.Models.CommandModels;
 
 namespace OrderService.Commands;
 
-public class CreateCommandHandler
+public class CreateCommandHandler : ICommandHandler<CreateCommand, string>
 {
     private readonly DbContext _database;
 

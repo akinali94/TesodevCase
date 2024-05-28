@@ -5,7 +5,7 @@ using OrderService.V1.Models.QueryModels;
 
 namespace OrderService.Queries;
 
-public class GetAllQueryHandler
+public class GetAllQueryHandler : IQueryHandler<GetAllQuery, IEnumerable<Order>>
 {
     private readonly DbContext _database;
 

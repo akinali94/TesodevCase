@@ -5,7 +5,7 @@ using OrderService.V1.Models.CommandModels;
 
 namespace OrderService.Commands;
 
-public class ChangeStatusCommandHandler
+public class ChangeStatusCommandHandler : ICommandHandler<ChangeStatusCommand, bool>
 {
     private readonly DbContext _database;
 

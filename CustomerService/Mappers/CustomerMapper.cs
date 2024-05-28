@@ -12,16 +12,13 @@ public class CustomerMapper : ICustomerMapper
         {
             Name = createModel.Name,
             Email = createModel.Email,
-            Address = new List<Address>
+            Addresses = createModel.Addresses?.Select(x => new Address
             {
-                new Address
-                {
-                    AddressLine = createModel.AddressLine,
-                    City = createModel.City,
-                    Country = createModel.Country,
-                    CityCode = createModel.CityCode
-                }
-            },
+                AddressLine = x.AddressLine,
+                City = x.City,
+                Country = x.Country,
+                CityCode = x.CityCode
+            }).ToList(),
             UpdatedAt = null
         };
     }
@@ -33,7 +30,7 @@ public class CustomerMapper : ICustomerMapper
             Id = customer.Id,
             Name = customer.Name,
             Email = customer.Email,
-            Addresses = customer.Address?.Select(x => new CustomerGetModel.AddressGetModel
+            Addresses = customer.Addresses?.Select(x => new CustomerGetModel.AddressGetModel
             {
                 AddressLine = x.AddressLine,
                 City = x.City,
@@ -52,7 +49,7 @@ public class CustomerMapper : ICustomerMapper
             Id = c.Id,
             Name = c.Name,
             Email = c.Email,
-            Addresses = c.Address?.Select(a => new CustomerGetModel.AddressGetModel
+            Addresses = c.Addresses?.Select(a => new CustomerGetModel.AddressGetModel
             {
                 AddressLine = a.AddressLine,
                 City = a.City,
@@ -70,12 +67,12 @@ public class CustomerMapper : ICustomerMapper
         oldCustomer.Name = patchModel.Name ?? oldCustomer.Name;
         oldCustomer.Email = patchModel.Email ?? oldCustomer.Email;
         
-        for (int i = 0; i < oldCustomer.Address.Count; i++)
+        for (int i = 0; i < oldCustomer.Addresses.Count; i++)
         {
-            oldCustomer.Address[i].AddressLine = patchModel.Addresses[i].AddressLine ?? oldCustomer.Address[i].AddressLine;
-            oldCustomer.Address[i].Country = patchModel.Addresses[i].Country ?? oldCustomer.Address[i].Country;
-            oldCustomer.Address[i].CityCode = patchModel.Addresses[i].CityCode ?? oldCustomer.Address[i].CityCode;
-            oldCustomer.Address[i].City = patchModel.Addresses[i].City ?? oldCustomer.Address[i].City;
+            oldCustomer.Addresses[i].AddressLine = patchModel.Addresses[i].AddressLine ?? oldCustomer.Addresses[i].AddressLine;
+            oldCustomer.Addresses[i].Country = patchModel.Addresses[i].Country ?? oldCustomer.Addresses[i].Country;
+            oldCustomer.Addresses[i].CityCode = patchModel.Addresses[i].CityCode ?? oldCustomer.Addresses[i].CityCode;
+            oldCustomer.Addresses[i].City = patchModel.Addresses[i].City ?? oldCustomer.Addresses[i].City;
         }
 
         return oldCustomer;

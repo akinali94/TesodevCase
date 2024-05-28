@@ -3,6 +3,7 @@ using CustomerService.Services;
 using CustomerService.V1.Models.RequestModels;
 using CustomerService.V1.Models.ResponseModels;
 using FluentValidation;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerService.V1.Controllers;
@@ -133,6 +134,7 @@ public class CustomerController : ControllerBase
             _logger.LogError("Customer could not be validated at Validate endpoint");
             return BadRequest("Customer is not Valid");
         }
-        return Ok($"{id} is Valid");
+        //return Ok($"{id} is Valid");
+        return Ok(validate);
     }
 }

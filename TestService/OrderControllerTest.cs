@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using OrderService.Commands;
 using OrderService.Configs;
 using OrderService.Configs.HttpConfig;
@@ -23,8 +25,9 @@ public class OrderControllerTest
     private readonly Mock<IQueryHandler<GetByIdQuery, Order>> _mockGetByIdQueryHandler;
     private readonly Mock<IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>>> _mockGetByCustomerIdQueryHandler;
     private readonly Mock<IHttpHandler> _mockHttpHandler;
-    private readonly Mock<IKafkaProducerConfig> _mockProducerConfig;
-    private readonly Mock<ILogger<OrderController>> _mockLogger;
+    private readonly Mock<IValidator<CreateCommand>> _mockValidatorCreate;
+    private readonly Mock<IValidator<UpdateCommand>> _mockValidatorUpdate;
+    private readonly Mock<IValidator<ChangeStatusCommand>> _mockValidatorStatus;
 
     private readonly OrderController _controller;
 
@@ -38,8 +41,9 @@ public class OrderControllerTest
         _mockGetByIdQueryHandler = new Mock<IQueryHandler<GetByIdQuery, Order>>();
         _mockGetByCustomerIdQueryHandler = new Mock<IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>>>();
         _mockHttpHandler = new Mock<IHttpHandler>();
-        _mockProducerConfig = new Mock<IKafkaProducerConfig>();
-        _mockLogger = new Mock<ILogger<OrderController>>();
+        _mockValidatorCreate = new Mock<IValidator<CreateCommand>>();
+        _mockValidatorUpdate = new Mock<IValidator<UpdateCommand>>();
+        _mockValidatorStatus = new Mock<IValidator<ChangeStatusCommand>>();
         
 
         _controller = new OrderController(
@@ -50,9 +54,11 @@ public class OrderControllerTest
             _mockGetAllQueryHandler.Object,
             _mockGetByIdQueryHandler.Object,
             _mockGetByCustomerIdQueryHandler.Object,
-            _mockProducerConfig.Object,
-            _mockLogger.Object,
-            _mockHttpHandler.Object);
+            _mockHttpHandler.Object,
+            _mockValidatorCreate.Object,
+            _mockValidatorUpdate.Object,
+            _mockValidatorStatus.Object
+            );
     }
 
     [Fact]
@@ -88,6 +94,7 @@ public class OrderControllerTest
             
         var customerResponseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         _mockHttpHandler.Setup(client => client.GetAsync(It.IsAny<string>())).ReturnsAsync(customerResponseMessage);
+        _mockValidatorCreate.Setup(v => v.ValidateAsync(command, default)).ReturnsAsync(new ValidationResult());
         _mockCreateCommandHandler.Setup(handler => handler.Handle(command)).ReturnsAsync(orderId);
 
         // Act
@@ -174,6 +181,8 @@ public class OrderControllerTest
             var orderId = "valid-id";
             var customerId = "valid-cust-id";
             var updateCommand = new UpdateCommand(orderId,customerId,1,address,productList);
+            _mockValidatorUpdate.Setup(v => v.ValidateAsync(updateCommand, default))
+                .ReturnsAsync(new ValidationResult());
             _mockUpdateCommandHandler.Setup(handler => handler.Handle(updateCommand)).ReturnsAsync(true);
 
             // Act
@@ -208,6 +217,8 @@ public class OrderControllerTest
             var orderId = "valid-id";
             var customerId = "valid-cust-id";
             var updateCommand = new UpdateCommand(orderId, customerId, 1, address, productList);
+            _mockValidatorUpdate.Setup(v => v.ValidateAsync(updateCommand, default))
+                .ReturnsAsync(new ValidationResult());
             _mockUpdateCommandHandler.Setup(handler => handler.Handle(updateCommand)).ReturnsAsync(false);
 
             // Act

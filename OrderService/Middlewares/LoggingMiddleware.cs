@@ -7,9 +7,9 @@ public class LoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<LoggingMiddleware> _logger;
-    private readonly KafkaProducerConfig _producer;
+    private readonly IKafkaProducerConfig _producer;
     
-    public LoggingMiddleware(RequestDelegate next, KafkaProducerConfig producer, ILogger<LoggingMiddleware> logger)
+    public LoggingMiddleware(RequestDelegate next, IKafkaProducerConfig producer, ILogger<LoggingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -18,15 +18,15 @@ public class LoggingMiddleware
     
     public async Task InvokeAsync(HttpContext context)
     {
-        var request = context.Request;
+        //var request = context.Request;
         
         var requestLog = new RequestLog
         {
             Timestamp = DateTime.Now,
             Level = "Info",
-            Message = $"HTTP {request.Method} : {request.Path}",
+            Message = $"HTTP {context.Request.Method} : {context.Request.Path}",
             Source = "Request",
-            Host = $"{request.Host}",
+            Host = $"{context.Request.Host}",
             User = $"{context.User.Identity?.Name}"
         };
         
@@ -52,15 +52,15 @@ public class LoggingMiddleware
     
     private void LogRequest(HttpContext context)
     {
-        var request = context.Request;
+        //var request = context.Request;
 
         var requestLog = new RequestLog
         {
             Timestamp = DateTime.Now,
             Level = "Info",
-            Message = $"HTTP {request.Method} : {request.Path}",
+            Message = $"HTTP {context.Request.Method} : {context.Request.Path}",
             Source = "Request",
-            Host = $"{request.Host}",
+            Host = $"{context.Request.Host}",
             User = $"{context.User.Identity?.Name}"
         };
         
@@ -71,17 +71,18 @@ public class LoggingMiddleware
 
     private ResponseLog LogResponse(HttpContext context)
     {
-        var response = context.Response;
+        //var response = context.Response;
 
         ResponseLog responseLog = new ResponseLog();
         responseLog.Timestamp = DateTime.Now;
         responseLog.Level = "Info";
-        if (response.StatusCode >= 500)
+        if (context.Response.StatusCode >= 500)
             responseLog.Level = "Error";
-        string statusCode = response.StatusCode.ToString();
+        string statusCode = context.Response.StatusCode.ToString();
+        responseLog.StatusCode = context.Response.StatusCode;
         responseLog.Message = "HTTP" + statusCode;
         responseLog.Source = "response";
-        responseLog.ContentType = response.ContentType ?? "unknown";
+        responseLog.ContentType = context.Response.ContentType ?? "unknown";
         
         // var responseLog = new ResponseLog
         // {

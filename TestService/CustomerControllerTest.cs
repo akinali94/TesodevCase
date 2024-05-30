@@ -19,15 +19,17 @@ public class CustomerControllerTest
     private readonly CustomerController _controller;
     private readonly Mock<ICustomerService> _mockService;
     private readonly Mock<ILogger<CustomerController>> _mockLogger;
-    private readonly Mock<IValidator<CustomerCreateModel>> _mockValidator;
+    private readonly Mock<IValidator<CustomerCreateModel>> _mockValidatorCreate;
+    private readonly Mock<IValidator<CustomerPatchModel>> _mockValidatorPatch;
     
     public CustomerControllerTest()
     {
         _mockService = new Mock<ICustomerService>();
         _mockLogger = new Mock<ILogger<CustomerController>>();
-        _mockValidator = new Mock<IValidator<CustomerCreateModel>>();
+        _mockValidatorCreate = new Mock<IValidator<CustomerCreateModel>>();
+        _mockValidatorPatch = new Mock<IValidator<CustomerPatchModel>>();
 
-        _controller = new CustomerController(_mockService.Object, _mockLogger.Object, _mockValidator.Object)
+        _controller = new CustomerController(_mockService.Object, _mockLogger.Object, _mockValidatorCreate.Object, _mockValidatorPatch.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -63,7 +65,7 @@ public class CustomerControllerTest
                 }
             ]
         };
-        _mockValidator.Setup(v => v.ValidateAsync(testCustomer, default)).ReturnsAsync(new ValidationResult());
+        _mockValidatorCreate.Setup(v => v.ValidateAsync(testCustomer, default)).ReturnsAsync(new ValidationResult());
         _mockService.Setup(s => s.Create(testCustomer)).ReturnsAsync("new-id");
         
         //Act
@@ -97,7 +99,7 @@ public class CustomerControllerTest
         {
             new ValidationFailure("Email", "Email is required")
         });
-        _mockValidator.Setup(v => v.ValidateAsync(testCustomer, default)).ReturnsAsync(validationResult);
+        _mockValidatorCreate.Setup(v => v.ValidateAsync(testCustomer, default)).ReturnsAsync(validationResult);
         
         //Act
         var exception = await Assert.ThrowsAsync<CustomException>(() => _controller.Create(testCustomer));
@@ -115,7 +117,8 @@ public class CustomerControllerTest
         {
             Name = "New Updated Name"
         };
-
+        
+        _mockValidatorPatch.Setup(v => v.ValidateAsync(testCustomer, default)).ReturnsAsync(new ValidationResult());
         _mockService.Setup(s => s.Update(customerId, testCustomer)).ReturnsAsync(true);
 
         // Act
@@ -132,6 +135,7 @@ public class CustomerControllerTest
         // Arrange
         string customerId = "valid-id";
         var patchModel = new CustomerPatchModel { Name = "Name Updated" };
+        _mockValidatorPatch.Setup(v => v.ValidateAsync(patchModel, default)).ReturnsAsync(new ValidationResult());
         _mockService.Setup(s => s.Update(customerId, patchModel)).ReturnsAsync(false);
 
         // Act & Assert
@@ -240,7 +244,7 @@ public class CustomerControllerTest
         // Act
         var exception = await Assert.ThrowsAsync<CustomException>(() => _controller.Get(customerId));
         //Assert
-        Assert.Equal("Error at Get endpoint", exception.Message);
+        Assert.Equal($"Error at Get endpoint: Service error ", exception.Message);
 
     }
 

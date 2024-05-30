@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using OrderService.Configs;
+using OrderService.Helpers;
 using OrderService.Models;
 using OrderService.V1.Models.CommandModels;
 
@@ -16,6 +17,9 @@ public class UpdateCommandHandler : ICommandHandler<UpdateCommand, bool>
 
     public async Task<bool> Handle(UpdateCommand command)
     {
+        if (await _database.Orders.Find(command.CustomerId).FirstOrDefaultAsync() is null)
+            throw new CustomException("Customer Id is wrong");
+        
         var filter = Builders<Order>.Filter.Eq(o => o.Id, command.Id);
         var update = Builders<Order>.Update
             .Set(o => o.CustomerId, command.CustomerId)

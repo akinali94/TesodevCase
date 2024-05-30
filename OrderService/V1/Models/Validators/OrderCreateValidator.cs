@@ -19,11 +19,39 @@ public class OrderCreateValidator : AbstractValidator<CreateCommand>
             .NotEmpty().WithMessage("Price is required")
             .GreaterThan(0).WithMessage("Price should be greater than 0");
         
-        RuleFor(x => x.Address)
-            .NotEmpty().WithMessage("Address is required");
+        RuleFor(x => x.Address.AddressLine)
+            .NotEmpty().WithMessage("AddressLine is required.")
+            .Must(x => x != "string").WithMessage("string word is not a valid name")
+            .Must(x => x != "").WithMessage("It can not be blank!")
+            .Length(2, 25).WithMessage("AddressLine must be between 2 and 25 characters.");
+
+        RuleFor(x => x.Address.Country)
+            .Must(x => x != "string").WithMessage("string word is not a valid name")
+            .Must(x => x != "").WithMessage("It can not be blank!")
+            .NotEmpty().WithMessage("Country is required.");
+
+        RuleFor(x => x.Address.City)
+            .NotEmpty().WithMessage("City is required.")
+            .Must(x => x != "string").WithMessage("string word is not a valid name")
+            .Must(x => x != "").WithMessage("It can not be blank!");
+
+        RuleFor(x => x.Address.CityCode)
+            .InclusiveBetween(10000, 100000).WithMessage("CityCode must be between 10000 and 100000.");
         
-        RuleFor(x => x.Products)
-            .NotEmpty().WithMessage("Product is required");
+        RuleFor(x => x.Products[0].Id)
+            .NotEmpty().WithMessage("Product Id is required")
+            .Must(x => x != "string").WithMessage("string word is not a valid name")
+            .Must(x => x != "").WithMessage("It can not be blank!");;
+        
+        RuleFor(x => x.Products[0].ImageUrl)
+            .NotEmpty().WithMessage("Image Url is required")
+            .Must(x => x != "string").WithMessage("string word is not a valid name")
+            .Must(x => x != "").WithMessage("It can not be blank!");;
+        
+        RuleFor(x => x.Products[0].Name)
+            .NotEmpty().WithMessage("Product Name is required")
+            .Must(x => x != "string").WithMessage("string word is not a valid name")
+            .Must(x => x != "").WithMessage("It can not be blank!");;
         
     }
 }

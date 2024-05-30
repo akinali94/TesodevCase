@@ -1,3 +1,4 @@
+using CustomerService.Helpers;
 using CustomerService.Models;
 using CustomerService.V1.Models.RequestModels;
 using CustomerService.V1.Models.ResponseModels;
@@ -66,8 +67,12 @@ public class CustomerMapper : ICustomerMapper
         
         oldCustomer.Name = patchModel.Name ?? oldCustomer.Name;
         oldCustomer.Email = patchModel.Email ?? oldCustomer.Email;
-        
-        for (int i = 0; i < oldCustomer.Addresses.Count; i++)
+
+        if (oldCustomer.Addresses.Count < patchModel.Addresses.Count)
+        {
+            throw new CustomException("Patch Model is not valid");
+        }
+        for (int i = 0; i < patchModel.Addresses.Count; i++)
         {
             oldCustomer.Addresses[i].AddressLine = patchModel.Addresses[i].AddressLine ?? oldCustomer.Addresses[i].AddressLine;
             oldCustomer.Addresses[i].Country = patchModel.Addresses[i].Country ?? oldCustomer.Addresses[i].Country;

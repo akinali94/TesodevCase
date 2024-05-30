@@ -1,12 +1,14 @@
 using FluentValidation;
 using OrderService.Commands;
 using OrderService.Configs;
+using OrderService.Configs.HttpConfig;
 using OrderService.Middlewares;
 using OrderService.Models;
 using OrderService.Queries;
 using OrderService.V1.Models.CommandModels;
 using OrderService.V1.Models.QueryModels;
 using OrderService.V1.Models.Validators;
+using HttpClientHandler = OrderService.Configs.HttpConfig.HttpClientHandler;
 
 namespace OrderService;
 
@@ -26,20 +28,21 @@ public class Program
         
         //DENEME
         builder.Services.AddScoped<DbContext>();
-        builder.Services.AddSingleton<ICommandHandler<ChangeStatusCommand, bool>, ChangeStatusCommandHandler>();
-        builder.Services.AddSingleton<ICommandHandler<CreateCommand, string>, CreateCommandHandler>();
-        builder.Services.AddSingleton<ICommandHandler<DeleteCommand, bool>, DeleteCommandHandler>();
-        builder.Services.AddSingleton<ICommandHandler<UpdateCommand, bool>, UpdateCommandHandler>();
-        builder.Services.AddSingleton<IQueryHandler<GetAllQuery, IEnumerable<Order>>, GetAllQueryHandler>();
-        builder.Services.AddSingleton<IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>>, GetByCustomerIdQueryHandler>();
-        builder.Services.AddSingleton<IQueryHandler<GetByIdQuery, Order>, GetByIdQueryHandler>();
+        builder.Services.AddScoped<ICommandHandler<ChangeStatusCommand, bool>, ChangeStatusCommandHandler>();
+        builder.Services.AddScoped<ICommandHandler<CreateCommand, string>, CreateCommandHandler>();
+        builder.Services.AddScoped<ICommandHandler<DeleteCommand, bool>, DeleteCommandHandler>();
+        builder.Services.AddScoped<ICommandHandler<UpdateCommand, bool>, UpdateCommandHandler>();
+        builder.Services.AddScoped<IQueryHandler<GetAllQuery, IEnumerable<Order>>, GetAllQueryHandler>();
+        builder.Services.AddScoped<IQueryHandler<GetByCustomerIdQuery, IEnumerable<Order>>, GetByCustomerIdQueryHandler>();
+        builder.Services.AddScoped<IQueryHandler<GetByIdQuery, Order>, GetByIdQueryHandler>();
         builder.Services.AddSingleton<IKafkaProducerConfig,KafkaProducerConfig>();
+        builder.Services.AddSingleton<IHttpHandler, HttpClientHandler>();
         
         //Fluent Validation
         builder.Services.AddScoped<IValidator<ChangeStatusCommand>, OrderStatusUpdateValidator>();
         builder.Services.AddScoped<IValidator<CreateCommand>, OrderCreateValidator>();
         builder.Services.AddScoped<IValidator<UpdateCommand>, OrderUpdateValidator>();
-
+        
         builder.Services.AddControllers();
         
         //HttpClient for Microservices

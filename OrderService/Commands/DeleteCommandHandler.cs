@@ -16,6 +16,10 @@ public class DeleteCommandHandler : ICommandHandler<DeleteCommand, bool>
 
     public async Task<bool> Handle(DeleteCommand command)
     {
+        //_collection.Find(x => x.Id == id).FirstOrDefaultAsync();
+        if (await _database.Orders.Find(x => x.Id == command.OrderId).FirstOrDefaultAsync() is null)
+            throw new KeyNotFoundException("Customer not found on Delete Handle");
+        
         var result = await _database.Orders.DeleteOneAsync(x => x.Id == command.OrderId);
 
         return result.IsAcknowledged;

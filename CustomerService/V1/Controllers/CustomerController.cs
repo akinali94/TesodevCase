@@ -15,20 +15,23 @@ public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _service;
     private readonly ILogger<CustomerController> _logger;
-    private readonly IValidator<CustomerCreateModel> _validator;
+    private readonly IValidator<CustomerCreateModel> _validatorCreateModel;
+    private readonly IValidator<CustomerPatchModel> _validatorPatchModel;
 
-    public CustomerController(ICustomerService service, ILogger<CustomerController> logger, IValidator<CustomerCreateModel> validator)
+    public CustomerController(ICustomerService service, ILogger<CustomerController> logger, 
+        IValidator<CustomerCreateModel> validator, IValidator<CustomerPatchModel> validatorPatchModel)
     {
         _service = service;
         _logger = logger;
-        _validator = validator;
+        _validatorCreateModel = validator;
+        _validatorPatchModel = validatorPatchModel;
     }
 
     [HttpPost("Create")]
     public async Task<IActionResult> Create([FromBody] CustomerCreateModel createModel)
     {
         
-        var validationResult = await _validator.ValidateAsync(createModel);
+        var validationResult = await _validatorCreateModel.ValidateAsync(createModel);
         if (!validationResult.IsValid)
         {
             throw new CustomException($"{validationResult.Errors[0].ErrorMessage}");
@@ -57,12 +60,18 @@ public class CustomerController : ControllerBase
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchById(string id, [FromBody] CustomerPatchModel patchModel)
     {
+        var validationResult = await _validatorPatchModel.ValidateAsync(patchModel);
+        if (!validationResult.IsValid)
+        {
+            throw new CustomException($"{validationResult.Errors[0].ErrorMessage}");
+            //return StatusCode(StatusCodes.Status400BadRequest, validationResult.Errors);
+        }
+        
         if (patchModel == null)
         {
             _logger.LogError("Update Model is empty");
             return BadRequest("Update Model is empty");
         }
-            
 
         var success = await _service.Update(id, patchModel);
 
@@ -88,7 +97,7 @@ public class CustomerController : ControllerBase
         catch(Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw new CustomException("Error at Delete endpoint");
+            throw new CustomException($"Error at Delete endpoint: {ex.Message}");
         }
 
     }
@@ -105,7 +114,7 @@ public class CustomerController : ControllerBase
         catch(Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw new CustomException("Error at Get endpoint");
+            throw new CustomException($"Error at Get endpoint: {ex.Message} ");
         }
     }
     
@@ -120,7 +129,7 @@ public class CustomerController : ControllerBase
         catch(Exception ex)
         {
             _logger.LogError(ex.Message);
-            throw new CustomException("Error at GetAll endpoint");
+            throw new CustomException($"Error at GetAll endpoint: {ex.Message}");
         }
     }
 

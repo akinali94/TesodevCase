@@ -31,6 +31,7 @@ public class Program
         
         //Fluent Validation
         builder.Services.AddScoped<IValidator<CustomerCreateModel>, CustomerCreateValidator>();
+        builder.Services.AddScoped<IValidator<CustomerPatchModel>, CustomerPatchValidator>();
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
